@@ -348,9 +348,13 @@ class WheelSlipCommand : public UserCommandBase
   public: bool Execute() final;
 
   /// \brief WheelSlip equality comparision function
-  public: std::function<bool(const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
+  public: std::function<bool(
+    const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
           wheelSlipEql {
-            [](const msgs::WheelSlipParametersCmd &_a, const msgs::WheelSlipParametersCmd &_b) {
+            [](
+              const msgs::WheelSlipParametersCmd &_a,
+              const msgs::WheelSlipParametersCmd &_b)
+            {
               return
                 _a.model_name() == _b.model_name() &&
                 _a.link_name() == _b.link_name() &&
@@ -809,7 +813,8 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::WheelSlipService(const msgs::WheelSlipParametersCmd &_req,
+bool UserCommandsPrivate::WheelSlipService(
+    const msgs::WheelSlipParametersCmd &_req,
     msgs::Boolean &_res)
 {
   // Create command and push it to queue
@@ -1445,7 +1450,8 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 //////////////////////////////////////////////////
 bool WheelSlipCommand::Execute()
 {
-  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParametersCmd *>(this->msg);
+  auto wheelSlipMsg = dynamic_cast<const msgs::WheelSlipParametersCmd *>(
+      this->msg);
   if (nullptr == wheelSlipMsg)
   {
     ignerr << "Internal error, null wheel slip message" << std::endl;
@@ -1467,7 +1473,8 @@ bool WheelSlipCommand::Execute()
   if (kNullEntity == linkEntity)
   {
     ignerr << "Failed to find link with name [" << wheelSlipMsg->link_name()
-           << "] for model [" << wheelSlipMsg->model_name() << "]." << std::endl;
+           << "] for model [" << wheelSlipMsg->model_name() << "]."
+           << std::endl;
     return false;
   }
 
