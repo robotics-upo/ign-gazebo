@@ -1635,6 +1635,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
 
+  int nNewScenes = 0;
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
@@ -1643,13 +1644,14 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         const components::World *,
         const components::Scene *_scene)->bool
       {
+        nNewScenes++;
         this->sceneManager.SetWorldId(_entity);
         const sdf::Scene &sceneSdf = _scene->Data();
         this->newScenes.push_back(sceneSdf);
         return true;
       });
 
-
+  int nNewModels = 0;
   _ecm.Each<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1658,6 +1660,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        nNewModels++;
         sdf::Model model;
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
@@ -1667,6 +1670,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         return true;
       });
 
+  int nNewLinks = 0;
   _ecm.Each<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1675,11 +1679,13 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        nNewLinks++;
         this->CreateLink(_ecm, _entity, _name, _pose, _parent);
         return true;
       });
 
   // visuals
+  int nNewVisuals = 0; 
   _ecm.Each<components::Visual, components::Name, components::Pose,
             components::Geometry,
             components::CastShadows,
@@ -1696,18 +1702,21 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::VisibilityFlags *_visibilityFlags,
           const components::ParentEntity *_parent)->bool
       {
+        nNewVisuals++;
         this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
             _transparency, _visibilityFlags, _parent);
         return true;
       });
 
   // actors
+  int nNewActors = 0;
   _ecm.Each<components::Actor, components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Actor *_actor,
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewActors++;
         this->newActors.push_back(std::make_tuple(_entity, _actor->Data(),
             _name->Data(), _parent->Data()));
 
@@ -1722,27 +1731,32 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
       });
 
   // lights
+  int nNewLights = 0;
   _ecm.Each<components::Light, components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Light *_light,
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewLights++;
         this->CreateLight(_ecm, _entity, _light, _name, _parent);
         return true;
       });
 
   // inertials
+  int nNewInertials = 0;
   _ecm.Each<components::Inertial, components::Pose>(
       [&](const Entity &_entity,
           const components::Inertial *_inrElement,
           const components::Pose *) -> bool
       {
+        nNewInertials++;
         this->entityInertials[_entity] = _inrElement->Data();
         return true;
       });
 
   // collisions
+  int nNewCollisions = 0;
   _ecm.Each<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
@@ -1754,12 +1768,14 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewCollisions++;
         this->entityCollisions[_entity] = _collElement->Data();
         this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
         return true;
       });
 
   // joints
+  int nNewJoints = 0;
   _ecm.Each<components::Joint, components::Name, components::JointType,
               components::Pose, components::ParentEntity,
               components::ParentLinkName, components::ChildLinkName>(
@@ -1772,6 +1788,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::ParentLinkName *_parentLinkName,
           const components::ChildLinkName *_childLinkName) -> bool
       {
+        nNewJoints++;
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
@@ -1798,16 +1815,24 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
       });
 
   // particle emitters
+  int nNewEmitters = 0;
   _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::ParticleEmitter *_emitter,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewEmitters++;
         this->newParticleEmitters.push_back(
             std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
         return true;
       });
 
+  int nNewCameras = 0;
+  int nNewDepthCameras = 0;
+  int nNewRgbdCameras = 0;
+  int nNewGpuLidars = 0;
+  int nNewThermalCameras = 0;
+  int nNewSegmentationCameras = 0;
   if (this->enableSensors)
   {
     // Create cameras
@@ -1816,6 +1841,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::Camera *_camera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewCameras++;
           this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
                        cameraSuffix);
           return true;
@@ -1827,6 +1853,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::DepthCamera *_depthCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewDepthCameras++;
           this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
               _parent->Data(), depthCameraSuffix);
           return true;
@@ -1838,6 +1865,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::RgbdCamera *_rgbdCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewRgbdCameras++;
           this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
               _parent->Data(), rgbdCameraSuffix);
           return true;
@@ -1849,6 +1877,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::GpuLidar *_gpuLidar,
           const components::ParentEntity *_parent)->bool
         {
+          nNewGpuLidars++;
           this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
                        gpuLidarSuffix);
           return true;
@@ -1860,6 +1889,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::ThermalCamera *_thermalCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewThermalCameras++;
           this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
               _parent->Data(), thermalCameraSuffix);
           return true;
@@ -1871,10 +1901,35 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           const components::SegmentationCamera *_segmentationCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewSegmentationCameras++;
           this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+  }
+
+  if (nNewScenes || nNewModels || nNewLinks || nNewVisuals || nNewActors ||
+      nNewLights || nNewInertials || nNewCollisions || nNewJoints ||  nNewEmitters ||
+      nNewCameras || nNewDepthCameras || nNewRgbdCameras || nNewGpuLidars || 
+      nNewThermalCameras || nNewSegmentationCameras)
+  {
+    igndbg << "CreateEntitiesFirstUpdate: \n";
+    igndbg << "\tNew Scenes:              " << nNewScenes << "\n";
+    igndbg << "\tNew Models:              " << nNewModels << "\n";
+    igndbg << "\tNew Links:               " << nNewLinks << "\n";
+    igndbg << "\tNew Visuals:             " << nNewVisuals << "\n";
+    igndbg << "\tNew Actors:              " << nNewActors << "\n";
+    igndbg << "\tNew Lights:              " << nNewLights << "\n";
+    igndbg << "\tNew Inertials:           " << nNewInertials << "\n";
+    igndbg << "\tNew Collisions:          " << nNewCollisions << "\n";
+    igndbg << "\tNew Joints:              " << nNewJoints << "\n";
+    igndbg << "\tNew Emitters:            " << nNewEmitters << "\n";
+    igndbg << "\tNew Cameras:             " << nNewCameras << "\n";
+    igndbg << "\tNew DepthCameras:        " << nNewDepthCameras << "\n";
+    igndbg << "\tNew RgbdCameras:         " << nNewRgbdCameras << "\n";
+    igndbg << "\tNew GpuLidars:           " << nNewGpuLidars<< "\n";
+    igndbg << "\tNew ThermalCameras:      " << nNewThermalCameras<< "\n";
+    igndbg << "\tNew SegmentationCameras: " << nNewSegmentationCameras<< "\n";
   }
 }
 
@@ -1892,17 +1947,20 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
+  int nNewScenes = 0;
   _ecm.EachNew<components::World, components::Scene>(
       [&](const Entity & _entity,
         const components::World *,
         const components::Scene *_scene)->bool
       {
+        nNewScenes++;
         this->sceneManager.SetWorldId(_entity);
         const sdf::Scene &sceneSdf = _scene->Data();
         this->newScenes.push_back(sceneSdf);
         return true;
       });
 
+  int nNewModels = 0;
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1911,6 +1969,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        nNewModels++;
         sdf::Model model;
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
@@ -1920,6 +1979,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
         return true;
       });
 
+  int nNewLinks = 0;
   _ecm.EachNew<components::Link, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1928,11 +1988,13 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        nNewLinks++;
         this->CreateLink(_ecm, _entity, _name, _pose, _parent);
         return true;
       });
 
   // visuals
+  int nNewVisuals = 0;
   _ecm.EachNew<components::Visual, components::Name, components::Pose,
             components::Geometry,
             components::CastShadows,
@@ -1949,18 +2011,21 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::VisibilityFlags *_visibilityFlags,
           const components::ParentEntity *_parent)->bool
       {
+        nNewVisuals++;
         this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
             _transparency, _visibilityFlags, _parent);
         return true;
       });
 
   // actors
+  int nNewActors = 0;
   _ecm.EachNew<components::Actor, components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Actor *_actor,
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewActors++;
         this->newActors.push_back(
             std::make_tuple(_entity, _actor->Data(), _name->Data(),
               _parent->Data()));
@@ -1976,27 +2041,32 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
       });
 
   // lights
+  int nNewLights = 0;
   _ecm.EachNew<components::Light, components::Name, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Light *_light,
           const components::Name *_name,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewLights++;
         this->CreateLight(_ecm, _entity, _light, _name, _parent);
         return true;
       });
 
   // inertials
+  int nNewInertials = 0;
   _ecm.EachNew<components::Inertial, components::Pose>(
       [&](const Entity &_entity,
           const components::Inertial *_inrElement,
           const components::Pose *) -> bool
       {
+        nNewInertials++;
         this->entityInertials[_entity] = _inrElement->Data();
         return true;
       });
 
   // collisions
+  int nNewCollisions = 0;
   _ecm.EachNew<components::Collision, components::Name, components::Pose,
             components::Geometry, components::CollisionElement,
             components::ParentEntity>(
@@ -2008,12 +2078,14 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewCollisions++;
         this->entityCollisions[_entity] = _collElement->Data();
         this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
         return true;
       });
 
   // joints
+  int nNewJoints = 0;
   _ecm.EachNew<components::Joint, components::Name, components::JointType,
               components::Pose, components::ParentEntity,
               components::ParentLinkName, components::ChildLinkName>(
@@ -2026,6 +2098,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::ParentLinkName *_parentLinkName,
           const components::ChildLinkName *_childLinkName) -> bool
       {
+        nNewJoints++;
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
@@ -2052,16 +2125,24 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
       });
 
   // particle emitters
+  int nNewEmitters = 0;
   _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
       [&](const Entity &_entity,
           const components::ParticleEmitter *_emitter,
           const components::ParentEntity *_parent) -> bool
       {
+        nNewEmitters++;
         this->newParticleEmitters.push_back(
             std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
         return true;
       });
 
+  int nNewCameras = 0;
+  int nNewDepthCameras = 0;
+  int nNewRgbdCameras = 0;
+  int nNewGpuLidars = 0;
+  int nNewThermalCameras = 0;
+  int nNewSegmentationCameras = 0;
   if (this->enableSensors)
   {
     // Create cameras
@@ -2070,6 +2151,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::Camera *_camera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewCameras++;
           this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
                        cameraSuffix);
           return true;
@@ -2081,6 +2163,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::DepthCamera *_depthCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewDepthCameras++;
           this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
               _parent->Data(), depthCameraSuffix);
           return true;
@@ -2092,6 +2175,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::RgbdCamera *_rgbdCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewRgbdCameras++;
           this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
               _parent->Data(), rgbdCameraSuffix);
           return true;
@@ -2103,6 +2187,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::GpuLidar *_gpuLidar,
           const components::ParentEntity *_parent)->bool
         {
+          nNewGpuLidars++;
           this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
                        gpuLidarSuffix);
           return true;
@@ -2114,6 +2199,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::ThermalCamera *_thermalCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewThermalCameras++;
           this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
               _parent->Data(), thermalCameraSuffix);
           return true;
@@ -2125,10 +2211,35 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           const components::SegmentationCamera *_segmentationCamera,
           const components::ParentEntity *_parent)->bool
         {
+          nNewSegmentationCameras++;
           this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+  }
+
+  if (nNewScenes || nNewModels || nNewLinks || nNewVisuals || nNewActors ||
+      nNewLights || nNewInertials || nNewCollisions || nNewJoints ||  nNewEmitters ||
+      nNewCameras || nNewDepthCameras || nNewRgbdCameras || nNewGpuLidars || 
+      nNewThermalCameras || nNewSegmentationCameras)
+  {
+    igndbg << "CreateEntitiesRuntime: \n";
+    igndbg << "\tNew Scenes:              " << nNewScenes << "\n";
+    igndbg << "\tNew Models:              " << nNewModels << "\n";
+    igndbg << "\tNew Links:               " << nNewLinks << "\n";
+    igndbg << "\tNew Visuals:             " << nNewVisuals << "\n";
+    igndbg << "\tNew Actors:              " << nNewActors << "\n";
+    igndbg << "\tNew Lights:              " << nNewLights << "\n";
+    igndbg << "\tNew Inertials:           " << nNewInertials << "\n";
+    igndbg << "\tNew Collisions:          " << nNewCollisions << "\n";
+    igndbg << "\tNew Joints:              " << nNewJoints << "\n";
+    igndbg << "\tNew Emitters:            " << nNewEmitters << "\n";
+    igndbg << "\tNew Cameras:             " << nNewCameras << "\n";
+    igndbg << "\tNew DepthCameras:        " << nNewDepthCameras << "\n";
+    igndbg << "\tNew RgbdCameras:         " << nNewRgbdCameras << "\n";
+    igndbg << "\tNew GpuLidars:           " << nNewGpuLidars<< "\n";
+    igndbg << "\tNew ThermalCameras:      " << nNewThermalCameras<< "\n";
+    igndbg << "\tNew SegmentationCameras: " << nNewSegmentationCameras<< "\n";
   }
 }
 

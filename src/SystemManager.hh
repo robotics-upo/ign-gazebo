@@ -92,6 +92,8 @@ namespace ignition
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
+      public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
+
       /// \brief Get an vector of all systems implementing "Configure"
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 

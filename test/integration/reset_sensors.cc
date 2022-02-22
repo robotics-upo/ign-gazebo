@@ -97,7 +97,7 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   ignition::gazebo::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/reset.sdf";
+    "/test/worlds/reset_sensors.sdf";
 
   serverConfig.SetSdfFile(sdfFile);
 

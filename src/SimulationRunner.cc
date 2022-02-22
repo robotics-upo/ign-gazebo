@@ -537,8 +537,7 @@ void SimulationRunner::UpdateSystems()
   if (this->resetInitiated)
   {
     IGN_PROFILE("Reset");
-    for (auto &system : this->systemsReset)
-      system->Reset(this->currentInfo, this->entityCompMgr);
+    this->systemMgr->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
 
