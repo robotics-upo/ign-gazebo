@@ -9,6 +9,7 @@ gz_add_gui_plugin(ComponentInspectorEditor
     Magnetometer.cc
     ModelEditor.cc
     Pose3d.cc
+    Radar.cc
     Types.cc
   QT_HEADERS
     AirPressure.hh
@@ -20,4 +21,5 @@ gz_add_gui_plugin(ComponentInspectorEditor
     Magnetometer.hh
     ModelEditor.hh
     Pose3d.hh
+    Radar.hh
 )

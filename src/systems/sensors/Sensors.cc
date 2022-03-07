@@ -34,6 +34,7 @@
 #include <ignition/sensors/CameraSensor.hh>
 #include <ignition/sensors/DepthCameraSensor.hh>
 #include <ignition/sensors/GpuLidarSensor.hh>
+#include <ignition/sensors/GpuRadarSensor.hh>
 #include <ignition/sensors/RenderingSensor.hh>
 #include <ignition/sensors/RgbdCameraSensor.hh>
 #include <ignition/sensors/ThermalCameraSensor.hh>
@@ -44,6 +45,7 @@
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/GpuRadar.hh"
 #include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
@@ -501,7 +503,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
          _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-         _ecm.HasComponentType(components::SegmentationCamera::typeId)))
+         _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+         _ecm.HasComponentType(components::GpuRadar::typeId)
+         )) 
     {
       igndbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
@@ -605,6 +609,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::SegmentationCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::GPU_RADAR)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::GpuRadarSensor>(_sdf);
   }
 
   if (nullptr == sensor)

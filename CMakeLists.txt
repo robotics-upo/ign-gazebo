@@ -126,6 +126,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
     rendering
     lidar
     gpu_lidar
+    gpu_radar
 
     # cameras
     camera

@@ -29,6 +29,7 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
+#include <sdf/Radar.hh>
 
 #include <ignition/msgs/serialized.pb.h>
 #include <ignition/msgs/stringmsg.pb.h>
@@ -41,6 +42,7 @@
 #include <ignition/gazebo/components/Camera.hh>
 #include <ignition/gazebo/components/ChildLinkName.hh>
 #include <ignition/gazebo/components/GpuLidar.hh>
+#include <ignition/gazebo/components/GpuRadar.hh>
 #include <ignition/gazebo/components/Imu.hh>
 #include <ignition/gazebo/components/Inertial.hh>
 #include <ignition/gazebo/components/Joint.hh>
@@ -514,6 +516,51 @@ void printGpuLidar(const uint64_t _entity,
 }
 
 //////////////////////////////////////////////////
+void printGpuRadar(const uint64_t _entity,
+    const EntityComponentManager &_ecm, int _spaces)
+{
+  // Get the type and return if the _entity does not have the correct
+  // component.
+  auto comp = _ecm.Component<components::GpuRadar>(_entity);
+  if (!comp)
+    return;
+
+  const sdf::Sensor &sensor = comp->Data();
+  const sdf::Radar *radar = sensor.RadarSensor();
+
+  std::cout << std::string(_spaces, ' ') << "- Range:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Min (m): "
+    << radar->RangeMin() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max (m): "
+    << radar->RangeMax() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << radar->RangeResolution() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Horizontal scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << radar->HorizontalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << radar->HorizontalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (rad): "
+    << radar->HorizontalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (rad): "
+    << radar->HorizontalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Vertical scan:\n";
+  std::cout << std::string(_spaces+2, ' ') << "- Samples: "
+    << radar->VerticalScanSamples() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Resolution: "
+    << radar->VerticalScanResolution() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Min angle (rad): "
+    << radar->VerticalScanMinAngle() << std::endl;
+  std::cout << std::string(_spaces+2, ' ') << "- Max angle (rad): "
+    << radar->VerticalScanMaxAngle() << std::endl;
+
+  std::cout << std::string(_spaces, ' ') << "- Noise:\n";
+  printNoise(radar->RadarNoise(), _spaces + 2, "m");
+}
+
+//////////////////////////////////////////////////
 void printMagnetometer(const uint64_t _entity,
     const EntityComponentManager &_ecm, int _spaces)
 {
@@ -688,6 +735,7 @@ void printLinks(const uint64_t _modelEntity,
       printAltimeter(sensor, _ecm, spaces + 2);
       printCamera(sensor, _ecm, spaces + 2);
       printGpuLidar(sensor, _ecm, spaces + 2);
+      printGpuRadar(sensor, _ecm, spaces + 2);
       printImu(sensor, _ecm, spaces + 2);
       printMagnetometer(sensor, _ecm, spaces + 2);
       printRgbdCamera(sensor, _ecm, spaces + 2);

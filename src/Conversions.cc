@@ -64,7 +64,9 @@
 #include <sdf/NavSat.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Radar.hh>
 #include <sdf/Sphere.hh>
+
 
 #include <algorithm>
 #include <string>

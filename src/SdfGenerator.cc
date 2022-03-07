@@ -34,6 +34,7 @@
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/GpuRadar.hh"
 #include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -698,6 +699,16 @@ namespace sdf_generator
       _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
+
+    // gpu radar
+    auto gpuRadarComp = _ecm.Component<components::GpuRadar>(_entity);
+    if (gpuRadarComp)
+    {
+      const sdf::Sensor &sensor = gpuRadarComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+
     // altimeter
     auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
     if (altimeterComp)

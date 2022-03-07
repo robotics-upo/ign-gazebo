@@ -38,6 +38,7 @@
 #include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/GpuRadar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Imu.hh"
 #include "ignition/gazebo/components/Inertial.hh"
@@ -828,6 +829,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::GpuLidar(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPU_RADAR)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::GpuRadar(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::LIDAR)
   {

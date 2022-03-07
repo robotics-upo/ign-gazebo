@@ -33,6 +33,7 @@
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
+#include <sdf/Radar.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sensor.hh>
 #include <sdf/Visual.hh>
@@ -675,6 +676,25 @@ TEST_F(SdfGeneratorFixture, WorldWithRenderingSensors)
     EXPECT_DOUBLE_EQ(0.08, lidar->RangeMin());
     EXPECT_DOUBLE_EQ(10.0, lidar->RangeMax());
     EXPECT_DOUBLE_EQ(0.01, lidar->RangeResolution());
+  }
+
+  // gpu radar
+  {
+    auto *gpuRadarLink = model->LinkByName("gpu_radar_link");
+    ASSERT_NE(nullptr, gpuRadarLink);
+    auto *gpuRadarSensor = gpuRadarLink->SensorByName("gpu_radar");
+    const sdf::Radar *radar = gpuRadarSensor->RadarSensor();
+    EXPECT_EQ(640u, radar->HorizontalScanSamples());
+    EXPECT_DOUBLE_EQ(1.0, radar->HorizontalScanResolution());
+    EXPECT_NEAR(-1.396263, radar->HorizontalScanMinAngle().Radian(), 1e-5);
+    EXPECT_NEAR(1.396263, radar->HorizontalScanMaxAngle().Radian(), 1e-5);
+    EXPECT_EQ(1u, radar->VerticalScanSamples());
+    EXPECT_DOUBLE_EQ(0.01, radar->VerticalScanResolution());
+    EXPECT_DOUBLE_EQ(0.0, radar->VerticalScanMinAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.0, radar->VerticalScanMaxAngle().Radian());
+    EXPECT_DOUBLE_EQ(0.08, radar->RangeMin());
+    EXPECT_DOUBLE_EQ(10.0, radar->RangeMax());
+    EXPECT_DOUBLE_EQ(0.01, radar->RangeResolution());
   }
 
   // depth camera

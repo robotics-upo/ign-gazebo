@@ -88,6 +88,7 @@
 #include "Magnetometer.hh"
 #include "ModelEditor.hh"
 #include "Pose3d.hh"
+#include "Radar.hh"
 
 namespace ignition::gazebo
 {
@@ -146,6 +147,9 @@ namespace ignition::gazebo
 
     /// \brief Lidar inspector elements
     public: std::unique_ptr<ignition::gazebo::Lidar> lidar;
+
+    /// \brief Radar inspector elements
+    public: std::unique_ptr<ignition::gazebo::Radar> radar;
 
     /// \brief Magnetometer inspector elements
     public: std::unique_ptr<ignition::gazebo::Magnetometer> magnetometer;
@@ -508,6 +512,9 @@ void ComponentInspectorEditor::LoadConfig(const tinyxml2::XMLElement *)
 
   // Create the pose3d
   this->dataPtr->pose3d = std::make_unique<Pose3d>(this);
+
+  // Create the radar
+  this->dataPtr->radar = std::make_unique<Radar>(this);
 }
 
 //////////////////////////////////////////////////

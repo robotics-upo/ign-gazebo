@@ -58,6 +58,7 @@
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/GpuRadar.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -1633,6 +1634,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string gpuRadarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
 
   // Get all the new worlds
@@ -1854,6 +1856,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           return true;
         });
 
+    // Create gpu radar
+    _ecm.Each<components::GpuRadar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuRadar *_gpuRadar,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _gpuRadar->Data(), _parent->Data(),
+                       gpuRadarSuffix);
+          return true;
+        });
+
     // Create thermal camera
     _ecm.Each<components::ThermalCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1887,6 +1900,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string gpuRadarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
 
   // Get all the new worlds
@@ -2108,6 +2122,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           return true;
         });
 
+    // Create gpu radar
+    _ecm.EachNew<components::GpuRadar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuRadar *_gpuRadar,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _gpuRadar->Data(), _parent->Data(),
+                       gpuRadarSuffix);
+          return true;
+        });
+
     // Create thermal camera
     _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2269,6 +2294,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         this->entityPoses[_entity] = _pose->Data();
         return true;
       });
+  
+  // Update gpu_radar
+  _ecm.Each<components::GpuRadar, components::Pose>(
+      [&](const Entity &_entity,
+        const components::GpuRadar *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
 
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera, components::Pose>(
@@ -2399,6 +2434,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // gpu_lidars
   _ecm.EachRemoved<components::GpuLidar>(
     [&](const Entity &_entity, const components::GpuLidar *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // gpu_radars
+  _ecm.EachRemoved<components::GpuRadar>(
+    [&](const Entity &_entity, const components::GpuRadar *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;
